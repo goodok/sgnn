@@ -68,6 +68,12 @@ if args.input_dim == 0: # set default values
         args.input_dim = (160, 96, 96)
     if '64-64-64' in args.data_path:
         args.input_dim = (64, 64, 64)
+
+
+    args.input_dim = (64, 64, 64)      # ok
+    # args.input_dim = (160, 96, 96)     # fail
+    #args.input_dim = (128, 64, 64)       # ok
+
 args.input_nf = 1
 UP_AXIS = 0
 print(args)

@@ -1,0 +1,2 @@
+
+mkvirtualenv -p python2.7 sgnn
