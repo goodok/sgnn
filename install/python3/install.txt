@@ -2,14 +2,11 @@
 
 ### https://stackoverflow.com/questions/59632017/install-python-2-7-on-ubuntu-18-04
 
-    sudo apt install python2.7
-    sudo apt install python-pip
-
 
 
 ## Virtualenv
 
-    mkvirtualenv -p python2.7 sgnn
+    mkvirtualenv sgnn_python3
 
 ## Install modules
 
@@ -24,10 +21,10 @@ https://github.com/facebookresearch/SparseConvNet
     sudo apt-get install libsparsehash-dev
 
 
-    git clone https://github.com/facebookresearch/SparseConvNet SparseConvNet_sgnn_python2.7
+    git clone https://github.com/facebookresearch/SparseConvNet SparseConvNet_sgnn_python3
 
 
-    cd SparseConvNet_sgnn_python2.7/
+    cd SparseConvNet_sgnn_python3/
 
 # Commits on Oct 28, 2019 a948af5889bf420cdbda56ffea82b0ba9b06c125 - fails
 # Commits on Jun 22, 2019 d80ef3e21d183723b1135cea3579740b7c200ed7 - ok
@@ -52,7 +49,7 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 
 ## SGNN
 
-    cd sgnn_original_python2.7
+    cd sgnn_original_python3
     cd torch/marching_cubes
     python setup.py install
 
