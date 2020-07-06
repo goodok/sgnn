@@ -62,8 +62,10 @@ class LightningTemplateModel(LightningModule):
             input_dim = (160, 96, 96)
         elif input_dim == '64-64-64':
             input_dim = (64, 64, 64)
-
         self.hparams.input_dim = input_dim
+
+
+        self._iter_counter = 0
 
         # if you specify an example input, the summary will show input/output for each layer
         #self.example_input_array = torch.rand(5, 28 * 28)
@@ -91,12 +93,6 @@ class LightningTemplateModel(LightningModule):
                                self.hparams.use_skip_dense)
 
         self.model = model.cuda()
-
-        _iter = 0
-        self.model._loss_weights = get_loss_weights(_iter,
-                                                    self.hparams.num_hierarchy_levels,
-                                                    self.hparams.num_iters_per_level,
-                                                    self.hparams.weight_sdf_loss)
 
     def summarize(self, mode=None):
         return None
@@ -174,7 +170,13 @@ class LightningTemplateModel(LightningModule):
         target_for_sdf, target_for_occs, target_for_hier = loss_util.compute_targets(sdfs.cuda(), hierarchy, num_hierarchy_levels, truncation, use_loss_masking, known)
 
         # TODO: update
-        loss_weights = self.model._loss_weights
+        #loss_weights = self.model._loss_weights
+        _iter = self._iter_counter
+        loss_weights = get_loss_weights(_iter,
+                                        self.hparams.num_hierarchy_levels,
+                                        self.hparams.num_iters_per_level,
+                                        self.hparams.weight_sdf_loss)
+
 
         output_sdf, output_occs = self(inputs, loss_weights)
         loss, losses = loss_util.compute_loss(output_sdf, output_occs, target_for_sdf, target_for_occs, target_for_hier, loss_weights, truncation,
@@ -186,6 +188,9 @@ class LightningTemplateModel(LightningModule):
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
         })
+
+        self._iter_counter += 1
+
         return output
 
     def validation_step(self, batch, batch_idx):
@@ -240,7 +245,11 @@ class LightningTemplateModel(LightningModule):
         target_for_sdf, target_for_occs, target_for_hier = loss_util.compute_targets(sdfs.cuda(), hierarchy, num_hierarchy_levels, truncation, use_loss_masking, known)
 
         # TODO: update
-        loss_weights = self.model._loss_weights
+        _iter = self._iter_counter
+        loss_weights = get_loss_weights(_iter,
+                                        self.hparams.num_hierarchy_levels,
+                                        self.hparams.num_iters_per_level,
+                                        self.hparams.weight_sdf_loss)
 
         output_sdf, output_occs = self(inputs, loss_weights)
         loss, losses = loss_util.compute_loss(output_sdf, output_occs, target_for_sdf, target_for_occs, target_for_hier, loss_weights, truncation,
@@ -370,7 +379,12 @@ class LightningTemplateModel(LightningModule):
         print('#train files = ', len(train_files))
         print('#val files = ', len(val_files))
         train_dataset = scene_dataloader.SceneDataset(train_files, input_dim, truncation, num_hierarchy_levels, 0, num_overfit_train)
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers_train, collate_fn=scene_dataloader.collate)
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers_train,
+                                                       collate_fn=scene_dataloader.collate)
+
+        self._iter_counter = self.hparams.start_epoch * (len(train_dataset) // self.hparams.batch_size)
+
+
         return train_dataloader
 
 
