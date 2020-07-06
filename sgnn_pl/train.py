@@ -29,7 +29,7 @@ def main(hparams):
     # 2 INIT TRAINER
     # ------------------------
     trainer = pl.Trainer(
-        max_epochs=hparams.epochs,
+        max_epochs=hparams.max_epochs,
         gpus=hparams.gpus,
         distributed_backend=hparams.distributed_backend,
         precision=16 if hparams.use_16bit else 32,

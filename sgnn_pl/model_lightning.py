@@ -52,10 +52,21 @@ class LightningTemplateModel(LightningModule):
         super().__init__()
         self.hparams = hparams
 
-        self.batch_size = hparams.batch_size
+        input_dim = self.hparams.input_dim
+        if input_dim == '':
+            # set default values
+            input_dim = 2 ** (3 + self.hparams.num_hierarchy_levels)
+        elif input_dim == '128-64-64':
+            input_dim = (128, 64, 64)
+        elif input_dim == '160-96-96':
+            input_dim = (160, 96, 96)
+        elif input_dim == '64-64-64':
+            input_dim = (64, 64, 64)
+
+        self.hparams.input_dim = input_dim
 
         # if you specify an example input, the summary will show input/output for each layer
-        self.example_input_array = torch.rand(5, 28 * 28)
+        #self.example_input_array = torch.rand(5, 28 * 28)
 
         # build model
         self.__build_model()
@@ -67,57 +78,25 @@ class LightningTemplateModel(LightningModule):
         """
         Layout the model.
         """
-        #self.c_d1 = nn.Linear(in_features=self.hparams.in_features,
-                              #out_features=self.hparams.hidden_dim)
-        #self.c_d1_bn = nn.BatchNorm1d(self.hparams.hidden_dim)
-        #self.c_d1_drop = nn.Dropout(self.hparams.drop_prob)
 
-        #self.c_d2 = nn.Linear(in_features=self.hparams.hidden_dim,
-                              #out_features=self.hparams.out_features)
-
-#parser.add_argument('--encoder_dim', type=int, default=8, help='pointnet feature dim')
-#parser.add_argument('--coarse_feat_dim', type=int, default=16, help='feature dim')
-#parser.add_argument('--refine_feat_dim', type=int, default=16, help='feature dim')
-#parser.add_argument('--no_pass_occ', dest='no_pass_occ', action='store_true')
-#parser.add_argument('--no_pass_feats', dest='no_pass_feats', action='store_true')
-#parser.add_argument('--use_skip_sparse', type=int, default=1, help='use skip connections between sparse convs')
-#parser.add_argument('--use_skip_dense', type=int, default=1, help='use skip connections between dense convs')
-#parser.add_argument('--no_logweight_target_sdf', dest='logweight_target_sdf', action='store_false')
-
-
-        # TODO: to params
-        encoder_dim = 8
-        input_dim = (128, 64, 64)
-        input_nf = 1
-        coarse_feat_dim = 16
-        refine_feat_dim = 16
-        num_hierarchy_levels = 4
-        no_pass_occ = False
-        no_pass_feats = False
-        use_skip_sparse = 1
-        use_skip_dense = 1
-
-        model = sgnn_model.GenModel(encoder_dim,
-                               input_dim,
-                               input_nf,
-                               coarse_feat_dim,
-                               refine_feat_dim,
-                               num_hierarchy_levels,
-                               not no_pass_occ,
-                               not no_pass_feats,
-                               use_skip_sparse,
-                               use_skip_dense)
+        model = sgnn_model.GenModel(self.hparams.encoder_dim,
+                               self.hparams.input_dim,
+                               self.hparams.input_nf,
+                               self.hparams.coarse_feat_dim,
+                               self.hparams.refine_feat_dim,
+                               self.hparams.num_hierarchy_levels,
+                               not self.hparams.no_pass_occ,
+                               not self.hparams.no_pass_feats,
+                               self.hparams.use_skip_sparse,
+                               self.hparams.use_skip_dense)
 
         self.model = model.cuda()
 
-        # TODO: to params
-        # parser.add_argument('--num_iters_per_level', type=int, default=2000, help='#iters before fading in training for next level.')
-        # parser.add_argument('--weight_sdf_loss', type=float, default=1.0, help='weight sdf loss vs occ.')
-        num_iters_per_level = 2000
-        weight_sdf_loss = 1.0
-
         _iter = 0
-        self.model._loss_weights = get_loss_weights(_iter, num_hierarchy_levels, num_iters_per_level, weight_sdf_loss)
+        self.model._loss_weights = get_loss_weights(_iter,
+                                                    self.hparams.num_hierarchy_levels,
+                                                    self.hparams.num_iters_per_level,
+                                                    self.hparams.weight_sdf_loss)
 
     def summarize(self, mode=None):
         return None
@@ -170,21 +149,14 @@ class LightningTemplateModel(LightningModule):
         ## can also return just a scalar instead of a dict (return loss_val)
         #return output
 
-        # TODO: params
-        # parser.add_argument('--use_loss_masking', dest='use_loss_masking', action='store_true')
-        # parser.add_argument('--no_loss_masking', dest='use_loss_masking', action='store_false')
-        # parser.set_defaults(no_pass_occ=False, no_pass_feats=False, logweight_target_sdf=True, use_loss_masking=True)
-        # parser.add_argument('--weight_sdf_loss', type=float, default=1.0, help='weight sdf loss vs occ.')
-        # parser.add_argument('--weight_missing_geo', type=float, default=5.0, help='weight missing geometry vs rest of sdf.')
+        batch_size = self.hparams.batch_size
+        num_hierarchy_levels = self.hparams.num_hierarchy_levels
+        truncation = self.hparams.truncation
+        use_loss_masking = self.hparams.use_loss_masking
+        logweight_target_sdf = self.hparams.logweight_target_sdf
+        weight_missing_geo = self.hparams.weight_missing_geo
 
-        batch_size = 8
-        num_hierarchy_levels = 4
-        truncation = 3
-        use_loss_masking = True
-        logweight_target_sdf = True
-        weight_missing_geo = 0.5
-
-        sample =  batch
+        sample = batch
 
         sdfs = sample['sdf']
         # TODO: fix it
@@ -243,21 +215,14 @@ class LightningTemplateModel(LightningModule):
         ## can also return just a scalar instead of a dict (return loss_val)
         #return output
 
-        # TODO: params
-        # parser.add_argument('--use_loss_masking', dest='use_loss_masking', action='store_true')
-        # parser.add_argument('--no_loss_masking', dest='use_loss_masking', action='store_false')
-        # parser.set_defaults(no_pass_occ=False, no_pass_feats=False, logweight_target_sdf=True, use_loss_masking=True)
-        # parser.add_argument('--weight_sdf_loss', type=float, default=1.0, help='weight sdf loss vs occ.')
-        # parser.add_argument('--weight_missing_geo', type=float, default=5.0, help='weight missing geometry vs rest of sdf.')
+        batch_size = self.hparams.batch_size
+        num_hierarchy_levels = self.hparams.num_hierarchy_levels
+        truncation = self.hparams.truncation
+        use_loss_masking = self.hparams.use_loss_masking
+        logweight_target_sdf = self.hparams.logweight_target_sdf
+        weight_missing_geo = self.hparams.weight_missing_geo
 
-        batch_size = 8
-        num_hierarchy_levels = 4
-        truncation = 3
-        use_loss_masking = True
-        logweight_target_sdf = True
-        weight_missing_geo = 0.5
-
-        sample =  batch
+        sample = batch
 
         sdfs = sample['sdf']
         # TODO: fix it
@@ -321,19 +286,14 @@ class LightningTemplateModel(LightningModule):
         Return whatever optimizers and learning rate schedulers you want here.
         At least one optimizer is required.
         """
-
-        # optimizer = optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
-
-        # TODO: params
-#parser.add_argument('--lr', type=float, default=0.001, help='learning rate, default=0.001')
-#parser.add_argument('--decay_lr', type=int, default=10, help='decay learning rate by half every n epochs')
-#parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay.')
-
-        lr = 0.001
-        weight_decay = 0.0
+        lr = self.hparams.lr
+        weight_decay = self.hparams.weight_decay
+        decay_lr = self.hparams.decay_lr
+        last_epoch = -1 if not self.hparams.retrain else self.hparams.start_epoch - 1
 
         optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+        #scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=decay_lr, gamma=0.5, last_epoch=last_epoch)
         return [optimizer], [scheduler]
 
     #def __dataloader(self, train):
@@ -376,15 +336,10 @@ class LightningTemplateModel(LightningModule):
 
     def _get_train_files(self):
         if not hasattr(self, '__data_path'):
-            # from original
-            #parser.add_argument('--data_path', required=True, help='path to data')
-            #parser.add_argument('--train_file_list', required=True, help='path to file list of train data')
-            #parser.add_argument('--val_file_list', default='', help='path to file list of val data')
-            #--data_path ./data/completion_blocks --train_file_list ../filelists/train_list.txt --val_file_list ../filelists/val_list.txt
 
-            data_path = './data/completion_blocks'
-            train_file_list = './filelists/train_list.txt'
-            val_file_list = './filelists/val_list.txt'
+            data_path = self.hparams.data_path
+            train_file_list = self.hparams.train_file_list
+            val_file_list = self.hparams.val_file_list
 
             train_files, val_files = data_util.get_train_files(data_path, train_file_list, val_file_list)
 
@@ -399,13 +354,11 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        # TODO: to arguments
-        input_dim = (128, 64, 64)
-        num_hierarchy_levels = 4
-        truncation = 3
-        batch_size = 8
-
-        num_workers_train = 4
+        input_dim = self.hparams.input_dim
+        num_hierarchy_levels = self.hparams.num_hierarchy_levels
+        truncation = self.hparams.truncation
+        batch_size = self.hparams.batch_size
+        num_workers_train = self.hparams.num_workers_train
 
         _OVERFIT = False
         if len(train_files) == 1:
@@ -426,15 +379,12 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        # TODO: to arguments
-        input_dim = (128, 64, 64)
-        num_hierarchy_levels = 4
-        truncation = 3
-        batch_size = 8
-
-        num_workers_valid = 4
-
-        num_overfit_val = 160
+        input_dim = self.hparams.input_dim
+        num_hierarchy_levels = self.hparams.num_hierarchy_levels
+        truncation = self.hparams.truncation
+        batch_size = self.hparams.batch_size
+        num_workers_valid = self.hparams.num_workers_valid
+        num_overfit_val = self.hparams.num_overfit_val
 
         if len(val_files) > 0:
             val_dataset = scene_dataloader.SceneDataset(val_files, input_dim, truncation, num_hierarchy_levels, 0, num_overfit_val)
@@ -482,21 +432,61 @@ class LightningTemplateModel(LightningModule):
         # param overwrites
         # parser.set_defaults(gradient_clip_val=5.0)
 
-        # network params
-        parser.add_argument('--in_features', default=28 * 28, type=int)
-        parser.add_argument('--out_features', default=10, type=int)
-        # use 500 for CPU, 50000 for GPU to see speed difference
-        parser.add_argument('--hidden_dim', default=50000, type=int)
-        parser.add_argument('--drop_prob', default=0.2, type=float)
-        parser.add_argument('--learning_rate', default=0.001, type=float)
+        ## network params
+        #parser.add_argument('--in_features', default=28 * 28, type=int)
+        #parser.add_argument('--out_features', default=10, type=int)
+        ## use 500 for CPU, 50000 for GPU to see speed difference
+        #parser.add_argument('--hidden_dim', default=50000, type=int)
+        #parser.add_argument('--drop_prob', default=0.2, type=float)
+        #parser.add_argument('--learning_rate', default=0.001, type=float)
 
-        # data
-        parser.add_argument('--data_root', default=os.path.join(root_dir, 'mnist'), type=str)
+        ## data
+        #parser.add_argument('--data_root', default=os.path.join(root_dir, 'mnist'), type=str)
 
-        # training params (opt)
-        parser.add_argument('--epochs', default=20, type=int)
-        parser.add_argument('--optimizer_name', default='adam', type=str)
-        parser.add_argument('--batch_size', default=64, type=int)
+        ## training params (opt)
+        #parser.add_argument('--epochs', default=20, type=int)
+        #parser.add_argument('--optimizer_name', default='adam', type=str)
+        #parser.add_argument('--batch_size', default=64, type=int)
+
+        #parser.add_argument('--gpu', type=int, default=0, help='which gpu to use')
+
+        parser.add_argument('--data_path', required=True, help='path to data')
+        parser.add_argument('--train_file_list', required=True, help='path to file list of train data')
+        parser.add_argument('--val_file_list', default='', help='path to file list of val data')
+        parser.add_argument('--save', default='./logs', help='folder to output model checkpoints')
+        # model params
+        parser.add_argument('--retrain', type=str, default='', help='model to load from')
+        parser.add_argument('--input_dim', type=str, default='128-64-64', help='voxel dim.')
+        parser.add_argument('--encoder_dim', type=int, default=8, help='pointnet feature dim')
+        parser.add_argument('--coarse_feat_dim', type=int, default=16, help='feature dim')
+        parser.add_argument('--refine_feat_dim', type=int, default=16, help='feature dim')
+        parser.add_argument('--no_pass_occ', dest='no_pass_occ', action='store_true')
+        parser.add_argument('--no_pass_feats', dest='no_pass_feats', action='store_true')
+        parser.add_argument('--use_skip_sparse', type=int, default=1, help='use skip connections between sparse convs')
+        parser.add_argument('--use_skip_dense', type=int, default=1, help='use skip connections between dense convs')
+        parser.add_argument('--no_logweight_target_sdf', dest='logweight_target_sdf', action='store_false')
+        # train params
+        parser.add_argument('--num_hierarchy_levels', type=int, default=4, help='#hierarchy levels (must be > 1).')
+        parser.add_argument('--num_iters_per_level', type=int, default=2000, help='#iters before fading in training for next level.')
+        parser.add_argument('--num_overfit_val', type=int, default=160, help='')
+        parser.add_argument('--truncation', type=float, default=3, help='truncation in voxels')
+        parser.add_argument('--batch_size', type=int, default=8, help='input batch size')
+        parser.add_argument('--num_workers_train', type=int, default=4, help='num workers for train')
+        parser.add_argument('--num_workers_valid', type=int, default=4, help='num workers for valid')
+        parser.add_argument('--start_epoch', type=int, default=0, help='start epoch')
+        parser.add_argument('--max_epochs', type=int, default=5, help='number of epochs to train for')
+        parser.add_argument('--save_epoch', type=int, default=1, help='save every nth epoch')
+        parser.add_argument('--lr', type=float, default=0.001, help='learning rate, default=0.001')
+        parser.add_argument('--decay_lr', type=int, default=10, help='decay learning rate by half every n epochs')
+        parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay.')
+        parser.add_argument('--weight_sdf_loss', type=float, default=1.0, help='weight sdf loss vs occ.')
+        parser.add_argument('--weight_missing_geo', type=float, default=5.0, help='weight missing geometry vs rest of sdf.')
+        parser.add_argument('--vis_dfs', type=int, default=0, help='use df (iso 1) to visualize')
+        parser.add_argument('--use_loss_masking', dest='use_loss_masking', action='store_true')
+        parser.add_argument('--no_loss_masking', dest='use_loss_masking', action='store_false')
+        parser.add_argument('--scheduler_step_size', type=int, default=0, help='#iters before scheduler step (0 for each epoch)')
+        parser.add_argument('--input_nf', type=int, default=1, help='from original hardcoded')
+
         return parser
 
 import numpy as np
