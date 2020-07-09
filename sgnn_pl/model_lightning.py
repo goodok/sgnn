@@ -4,6 +4,7 @@ Example template for defining a system.
 import os
 from argparse import ArgumentParser
 from collections import OrderedDict
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -21,6 +22,9 @@ import scene_dataloader
 import data_util
 import model as sgnn_model
 import loss as loss_util
+
+from hydra import utils
+
 
 class LightningTemplateModel(LightningModule):
     """
@@ -52,17 +56,17 @@ class LightningTemplateModel(LightningModule):
         super().__init__()
         self.hparams = hparams
 
-        input_dim = self.hparams.input_dim
+        input_dim = self.hparams.model.input_dim
         if input_dim == '':
             # set default values
-            input_dim = 2 ** (3 + self.hparams.num_hierarchy_levels)
+            input_dim = 2 ** (3 + self.hparams.train.num_hierarchy_levels)
         elif input_dim == '128-64-64':
             input_dim = (128, 64, 64)
         elif input_dim == '160-96-96':
             input_dim = (160, 96, 96)
         elif input_dim == '64-64-64':
             input_dim = (64, 64, 64)
-        self.hparams.input_dim = input_dim
+        self.hparams.model.input_dim = input_dim
 
 
         self._iter_counter = 0
@@ -81,16 +85,16 @@ class LightningTemplateModel(LightningModule):
         Layout the model.
         """
 
-        model = sgnn_model.GenModel(self.hparams.encoder_dim,
-                               self.hparams.input_dim,
-                               self.hparams.input_nf,
-                               self.hparams.coarse_feat_dim,
-                               self.hparams.refine_feat_dim,
-                               self.hparams.num_hierarchy_levels,
-                               not self.hparams.no_pass_occ,
-                               not self.hparams.no_pass_feats,
-                               self.hparams.use_skip_sparse,
-                               self.hparams.use_skip_dense)
+        model = sgnn_model.GenModel(self.hparams.model.encoder_dim,
+                               self.hparams.model.input_dim,
+                               self.hparams.train.input_nf,
+                               self.hparams.model.coarse_feat_dim,
+                               self.hparams.model.refine_feat_dim,
+                               self.hparams.train.num_hierarchy_levels,
+                               not self.hparams.model.no_pass_occ,
+                               not self.hparams.model.no_pass_feats,
+                               self.hparams.model.use_skip_sparse,
+                               self.hparams.model.use_skip_dense)
 
         self.model = model.cuda()
 
@@ -149,7 +153,7 @@ class LightningTemplateModel(LightningModule):
         num_hierarchy_levels = self.hparams.num_hierarchy_levels
         truncation = self.hparams.truncation
         use_loss_masking = self.hparams.use_loss_masking
-        logweight_target_sdf = self.hparams.logweight_target_sdf
+        logweight_target_sdf = self.hparams.model.logweight_target_sdf
         weight_missing_geo = self.hparams.weight_missing_geo
 
         sample = batch
@@ -220,12 +224,12 @@ class LightningTemplateModel(LightningModule):
         ## can also return just a scalar instead of a dict (return loss_val)
         #return output
 
-        batch_size = self.hparams.batch_size
-        num_hierarchy_levels = self.hparams.num_hierarchy_levels
-        truncation = self.hparams.truncation
-        use_loss_masking = self.hparams.use_loss_masking
-        logweight_target_sdf = self.hparams.logweight_target_sdf
-        weight_missing_geo = self.hparams.weight_missing_geo
+        batch_size = self.hparams.train.batch_size
+        num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
+        truncation = self.hparams.train.truncation
+        use_loss_masking = self.hparams.train.use_loss_masking
+        logweight_target_sdf = self.hparams.model.logweight_target_sdf
+        weight_missing_geo = self.hparams.train.weight_missing_geo
 
         sample = batch
 
@@ -247,9 +251,9 @@ class LightningTemplateModel(LightningModule):
         # TODO: update
         _iter = self._iter_counter
         loss_weights = get_loss_weights(_iter,
-                                        self.hparams.num_hierarchy_levels,
-                                        self.hparams.num_iters_per_level,
-                                        self.hparams.weight_sdf_loss)
+                                        self.hparams.train.num_hierarchy_levels,
+                                        self.hparams.train.num_iters_per_level,
+                                        self.hparams.train.weight_sdf_loss)
 
         output_sdf, output_occs = self(inputs, loss_weights)
         loss, losses = loss_util.compute_loss(output_sdf, output_occs, target_for_sdf, target_for_occs, target_for_hier, loss_weights, truncation,
@@ -295,10 +299,10 @@ class LightningTemplateModel(LightningModule):
         Return whatever optimizers and learning rate schedulers you want here.
         At least one optimizer is required.
         """
-        lr = self.hparams.lr
-        weight_decay = self.hparams.weight_decay
-        decay_lr = self.hparams.decay_lr
-        last_epoch = -1 if not self.hparams.retrain else self.hparams.start_epoch - 1
+        lr = self.hparams.train.lr
+        weight_decay = self.hparams.train.weight_decay
+        decay_lr = self.hparams.train.decay_lr
+        last_epoch = -1 if not self.hparams.train.retrain else self.hparams.train.start_epoch - 1
 
         optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
         #scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
@@ -344,11 +348,15 @@ class LightningTemplateModel(LightningModule):
         #return self.__dataloader(train=False)
 
     def _get_train_files(self):
+        #print("CD:", pathlib.Path().absolute())
+        #print("CD:", )
+        root_dir = Path(utils.get_original_cwd())
+
         if not hasattr(self, '__data_path'):
 
-            data_path = self.hparams.data_path
-            train_file_list = self.hparams.train_file_list
-            val_file_list = self.hparams.val_file_list
+            data_path = root_dir / self.hparams.data.data_path
+            train_file_list = root_dir / self.hparams.data.train_file_list
+            val_file_list = root_dir / self.hparams.data.val_file_list
 
             train_files, val_files = data_util.get_train_files(data_path, train_file_list, val_file_list)
 
@@ -363,11 +371,11 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        input_dim = self.hparams.input_dim
-        num_hierarchy_levels = self.hparams.num_hierarchy_levels
-        truncation = self.hparams.truncation
-        batch_size = self.hparams.batch_size
-        num_workers_train = self.hparams.num_workers_train
+        input_dim = self.hparams.model.input_dim
+        num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
+        truncation = self.hparams.train.truncation
+        batch_size = self.hparams.train.batch_size
+        num_workers_train = self.hparams.train.num_workers_train
 
         _OVERFIT = False
         if len(train_files) == 1:
@@ -382,7 +390,7 @@ class LightningTemplateModel(LightningModule):
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers_train,
                                                        collate_fn=scene_dataloader.collate)
 
-        self._iter_counter = self.hparams.start_epoch * (len(train_dataset) // self.hparams.batch_size)
+        self._iter_counter = self.hparams.train.start_epoch * (len(train_dataset) // self.hparams.train.batch_size)
 
 
         return train_dataloader
@@ -393,12 +401,13 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        input_dim = self.hparams.input_dim
-        num_hierarchy_levels = self.hparams.num_hierarchy_levels
-        truncation = self.hparams.truncation
-        batch_size = self.hparams.batch_size
-        num_workers_valid = self.hparams.num_workers_valid
-        num_overfit_val = self.hparams.num_overfit_val
+        input_dim = self.hparams.model.input_dim
+        num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
+        truncation = self.hparams.train.truncation
+        batch_size = self.hparams.train.batch_size
+
+        num_workers_valid = self.hparams.train.num_workers_valid
+        num_overfit_val = self.hparams.train.num_overfit_val
 
         if len(val_files) > 0:
             val_dataset = scene_dataloader.SceneDataset(val_files, input_dim, truncation, num_hierarchy_levels, 0, num_overfit_val)

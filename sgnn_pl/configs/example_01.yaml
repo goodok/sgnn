@@ -1,5 +1,5 @@
 
-gpus: 2
+gpus: 1
 distributed_backend: dp
 use_16bit: false
 
@@ -13,7 +13,6 @@ save: ./logs
 
 ## model params
 model:
-    retrain: ''                         # model to load from
     input_dim: 128-64-64                # voxel dim
     encoder_dim: 8                      # pointnet feature dim
     coarse_feat_dim: 16                 # feature dim
@@ -22,9 +21,10 @@ model:
     no_pass_feats: false                # no_pass_feats
     use_skip_sparse: 1                  # use skip connections between sparse convs
     use_skip_dense: 1                   # use skip connections between dense convs
-    no_logweight_target_sdf: true       # logweight_target_sdf
+    logweight_target_sdf: true          # logweight_target_sdf
 
 train:
+    retrain: ''                         # model to load from
     num_hierarchy_levels: 4             # #hierarchy levels (must be > 1).
     num_iters_per_level: 2000           # #iters before fading in training for next level.
     num_overfit_val: 160
