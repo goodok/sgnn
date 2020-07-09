@@ -275,6 +275,19 @@ class SurfacePrediction(nn.Module):
 # ==== model ==== #
 class GenModel(nn.Module):
     def __init__(self, encoder_dim, input_dim, input_nf, nf_coarse, nf, num_hierarchy_levels, pass_occ, pass_feats, use_skip_sparse, use_skip_dense, truncation=3):
+        print("GenModel:")
+        print("  encoder_dim", encoder_dim)
+        print("  input_dim", input_dim)
+        print("  input_nf", input_nf)
+        print("  nf_coarse", nf_coarse)
+        print("  nf", nf)
+        print("  num_hierarchy_levels", num_hierarchy_levels)
+        print("  pass_occ", pass_occ)
+        print("  pass_feats", pass_feats)
+        print("  use_skip_sparse", use_skip_sparse)
+        print("  use_skip_dense", use_skip_dense)
+        print("  truncation", truncation)
+
         nn.Module.__init__(self)
         self.truncation = truncation
         self.pass_occ = pass_occ

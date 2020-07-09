@@ -1,2 +1,2 @@
-#HYDRA_FULL_ERROR=1  python train.py
-python train.py
+HYDRA_FULL_ERROR=1  python train.py
+#python train.py

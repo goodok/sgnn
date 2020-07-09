@@ -84,9 +84,12 @@ class LightningTemplateModel(LightningModule):
         """
         Layout the model.
         """
+        # TODO: convert input_dim from list to tuple
+        #input_dim = self.hparams.model.input_dim
+        input_dim = (128, 64, 64)
 
         model = sgnn_model.GenModel(self.hparams.model.encoder_dim,
-                               self.hparams.model.input_dim,
+                               input_dim,
                                self.hparams.train.input_nf,
                                self.hparams.model.coarse_feat_dim,
                                self.hparams.model.refine_feat_dim,
@@ -149,12 +152,13 @@ class LightningTemplateModel(LightningModule):
         ## can also return just a scalar instead of a dict (return loss_val)
         #return output
 
-        batch_size = self.hparams.batch_size
-        num_hierarchy_levels = self.hparams.num_hierarchy_levels
-        truncation = self.hparams.truncation
-        use_loss_masking = self.hparams.use_loss_masking
+        batch_size = self.hparams.train.batch_size
+        num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
+        truncation = self.hparams.train.truncation
+        use_loss_masking = self.hparams.train.use_loss_masking
         logweight_target_sdf = self.hparams.model.logweight_target_sdf
-        weight_missing_geo = self.hparams.weight_missing_geo
+        weight_missing_geo = self.hparams.train.weight_missing_geo
+
 
         sample = batch
 
@@ -177,9 +181,9 @@ class LightningTemplateModel(LightningModule):
         #loss_weights = self.model._loss_weights
         _iter = self._iter_counter
         loss_weights = get_loss_weights(_iter,
-                                        self.hparams.num_hierarchy_levels,
-                                        self.hparams.num_iters_per_level,
-                                        self.hparams.weight_sdf_loss)
+                                        self.hparams.train.num_hierarchy_levels,
+                                        self.hparams.train.num_iters_per_level,
+                                        self.hparams.train.weight_sdf_loss)
 
 
         output_sdf, output_occs = self(inputs, loss_weights)
@@ -371,7 +375,9 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        input_dim = self.hparams.model.input_dim
+        # TODO: convert input_dim from list to tuple
+        #input_dim = self.hparams.model.input_dim
+        input_dim = (128, 64, 64)
         num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
         truncation = self.hparams.train.truncation
         batch_size = self.hparams.train.batch_size
@@ -401,7 +407,10 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        input_dim = self.hparams.model.input_dim
+        # TODO: convert input_dim from list to tuple
+        #input_dim = self.hparams.model.input_dim
+        input_dim = (128, 64, 64)
+
         num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
         truncation = self.hparams.train.truncation
         batch_size = self.hparams.train.batch_size
