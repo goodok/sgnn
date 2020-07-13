@@ -84,9 +84,7 @@ class LightningTemplateModel(LightningModule):
         """
         Layout the model.
         """
-        # TODO: convert input_dim from list to tuple
-        #input_dim = self.hparams.model.input_dim
-        input_dim = (128, 64, 64)
+        input_dim = tuple(self.hparams.model.input_dim)
 
         model = sgnn_model.GenModel(self.hparams.model.encoder_dim,
                                input_dim,
@@ -375,9 +373,7 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        # TODO: convert input_dim from list to tuple
-        #input_dim = self.hparams.model.input_dim
-        input_dim = (128, 64, 64)
+        input_dim = self.hparams.model.input_dim
         num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
         truncation = self.hparams.train.truncation
         batch_size = self.hparams.train.batch_size
@@ -407,9 +403,7 @@ class LightningTemplateModel(LightningModule):
 
         data_path, train_files, val_files = self._get_train_files()
 
-        # TODO: convert input_dim from list to tuple
-        #input_dim = self.hparams.model.input_dim
-        input_dim = (128, 64, 64)
+        input_dim = tuple(self.hparams.model.input_dim)
 
         num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
         truncation = self.hparams.train.truncation
