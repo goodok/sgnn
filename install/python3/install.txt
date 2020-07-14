@@ -60,3 +60,4 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
     cd pytorch-lightning_sgnn
     # 0.7.5   27 apr 2020
     git checkout 694f1d789dfa56b365b68dd4f3c6f5f7a4c8970a
+    python setup.py develop
