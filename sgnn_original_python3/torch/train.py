@@ -403,7 +403,7 @@ def main():
     if not os.path.exists(args.save):
         os.makedirs(args.save)
     elif not _OVERFIT:
-        raw_input('warning: save dir %s exists, press key to delete and continue' % args.save)
+        input('warning: save dir %s exists, press key to delete and continue' % args.save)
 
     data_util.dump_args_txt(args, os.path.join(args.save, 'args.txt'))
     log_file = open(os.path.join(args.save, 'log.csv'), 'w')
