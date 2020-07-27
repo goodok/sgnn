@@ -11,6 +11,12 @@ data:
 
 save: ./logs
 
+tracker:
+    experiment_name: test2
+    neptune:
+        fn_token: ~/.NEPTUNE_API_TOKEN.txt
+        project_name: "goodok/sgnn"
+
 ## model params
 model:
     input_dim: 128-64-64                # voxel dim
