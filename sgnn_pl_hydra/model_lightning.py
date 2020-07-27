@@ -1,18 +1,13 @@
 """
 Example template for defining a system.
 """
-import os
+import numpy as np
 from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms as transforms
-from torch import optim
-from torch.utils.data import DataLoader
-from torchvision.datasets import MNIST
 
 from pytorch_lightning import _logger as log
 from pytorch_lightning.core import LightningModule
@@ -68,11 +63,10 @@ class LightningTemplateModel(LightningModule):
             input_dim = (64, 64, 64)
         self.hparams.model.input_dim = input_dim
 
-
         self._iter_counter = 0
 
         # if you specify an example input, the summary will show input/output for each layer
-        #self.example_input_array = torch.rand(5, 28 * 28)
+        # self.example_input_array = torch.rand(5, 28 * 28)
 
         # build model
         self.__build_model()
@@ -86,16 +80,17 @@ class LightningTemplateModel(LightningModule):
         """
         input_dim = tuple(self.hparams.model.input_dim)
 
-        model = sgnn_model.GenModel(self.hparams.model.encoder_dim,
-                               input_dim,
-                               self.hparams.train.input_nf,
-                               self.hparams.model.coarse_feat_dim,
-                               self.hparams.model.refine_feat_dim,
-                               self.hparams.train.num_hierarchy_levels,
-                               not self.hparams.model.no_pass_occ,
-                               not self.hparams.model.no_pass_feats,
-                               self.hparams.model.use_skip_sparse,
-                               self.hparams.model.use_skip_dense)
+        model = sgnn_model.GenModel(
+            self.hparams.model.encoder_dim,
+            input_dim,
+            self.hparams.train.input_nf,
+            self.hparams.model.coarse_feat_dim,
+            self.hparams.model.refine_feat_dim,
+            self.hparams.train.num_hierarchy_levels,
+            not self.hparams.model.no_pass_occ,
+            not self.hparams.model.no_pass_feats,
+            self.hparams.model.use_skip_sparse,
+            self.hparams.model.use_skip_dense)
 
         self.model = model.cuda()
 
@@ -110,13 +105,6 @@ class LightningTemplateModel(LightningModule):
         No special modification required for Lightning, define it as you normally would
         in the `nn.Module` in vanilla PyTorch.
         """
-        #x = self.c_d1(x)
-        #x = torch.tanh(x)
-        #x = self.c_d1_bn(x)
-        #x = self.c_d1_drop(x)
-
-        #x = self.c_d2(x)
-        #logits = F.log_softmax(x, dim=1)
 
         output = self.model(x, loss_weights)
 
@@ -131,39 +119,20 @@ class LightningTemplateModel(LightningModule):
         Lightning calls this inside the training loop with the data from the training dataloader
         passed in as `batch`.
         """
-        ## forward pass
-        #x, y = batch
-        #x = x.view(x.size(0), -1)
 
-        #y_hat = self(x)
-
-        ## calculate loss
-        #loss_val = self.loss(y, y_hat)
-
-        #tqdm_dict = {'train_loss': loss_val}
-        #output = OrderedDict({
-            #'loss': loss_val,
-            #'progress_bar': tqdm_dict,
-            #'log': tqdm_dict
-        #})
-
-        ## can also return just a scalar instead of a dict (return loss_val)
-        #return output
-
-        batch_size = self.hparams.train.batch_size
+        # batch_size = self.hparams.train.batch_size
         num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
         truncation = self.hparams.train.truncation
         use_loss_masking = self.hparams.train.use_loss_masking
         logweight_target_sdf = self.hparams.model.logweight_target_sdf
         weight_missing_geo = self.hparams.train.weight_missing_geo
 
-
         sample = batch
 
         sdfs = sample['sdf']
         # TODO: fix it
-        #if sdfs.shape[0] < batch_size:
-        #    continue  # maintain same batch size for training
+        # if sdfs.shape[0] < batch_size:
+        #     continue  # maintain same batch size for training
         inputs = sample['input']
         known = sample['known']
         hierarchy = sample['hierarchy']
@@ -173,16 +142,16 @@ class LightningTemplateModel(LightningModule):
             known = known.cuda()
         inputs[0] = inputs[0].cuda()
         inputs[1] = inputs[1].cuda()
-        target_for_sdf, target_for_occs, target_for_hier = loss_util.compute_targets(sdfs.cuda(), hierarchy, num_hierarchy_levels, truncation, use_loss_masking, known)
+        target_for_sdf, target_for_occs, target_for_hier = loss_util.compute_targets(sdfs.cuda(), hierarchy, num_hierarchy_levels, truncation,
+                                                                                     use_loss_masking, known)
 
         # TODO: update
-        #loss_weights = self.model._loss_weights
+        # loss_weights = self.model._loss_weights
         _iter = self._iter_counter
         loss_weights = get_loss_weights(_iter,
                                         self.hparams.train.num_hierarchy_levels,
                                         self.hparams.train.num_iters_per_level,
                                         self.hparams.train.weight_sdf_loss)
-
 
         output_sdf, output_occs = self(inputs, loss_weights)
         loss, losses = loss_util.compute_loss(output_sdf, output_occs, target_for_sdf, target_for_occs, target_for_hier, loss_weights, truncation,
@@ -204,29 +173,8 @@ class LightningTemplateModel(LightningModule):
         Lightning calls this inside the validation loop with the data from the validation dataloader
         passed in as `batch`.
         """
-        #x, y = batch
-        #x = x.view(x.size(0), -1)
-        #y_hat = self(x)
 
-        #loss_val = self.loss(y, y_hat)
-
-        ## acc
-        #labels_hat = torch.argmax(y_hat, dim=1)
-        #val_acc = torch.sum(y == labels_hat).item() / (len(y) * 1.0)
-        #val_acc = torch.tensor(val_acc)
-
-        #if self.on_gpu:
-            #val_acc = val_acc.cuda(loss_val.device.index)
-
-        #output = OrderedDict({
-            #'val_loss': loss_val,
-            #'val_acc': val_acc,
-        #})
-
-        ## can also return just a scalar instead of a dict (return loss_val)
-        #return output
-
-        batch_size = self.hparams.train.batch_size
+        # batch_size = self.hparams.train.batch_size
         num_hierarchy_levels = self.hparams.train.num_hierarchy_levels
         truncation = self.hparams.train.truncation
         use_loss_masking = self.hparams.train.use_loss_masking
@@ -237,8 +185,8 @@ class LightningTemplateModel(LightningModule):
 
         sdfs = sample['sdf']
         # TODO: fix it
-        #if sdfs.shape[0] < batch_size:
-        #    continue  # maintain same batch size for training
+        # if sdfs.shape[0] < batch_size:
+        #     continue  # maintain same batch size for training
         inputs = sample['input']
         known = sample['known']
         hierarchy = sample['hierarchy']
@@ -248,9 +196,10 @@ class LightningTemplateModel(LightningModule):
             known = known.cuda()
         inputs[0] = inputs[0].cuda()
         inputs[1] = inputs[1].cuda()
-        target_for_sdf, target_for_occs, target_for_hier = loss_util.compute_targets(sdfs.cuda(), hierarchy, num_hierarchy_levels, truncation, use_loss_masking, known)
+        target_for_sdf, target_for_occs, target_for_hier = loss_util.compute_targets(sdfs.cuda(), hierarchy, num_hierarchy_levels, truncation,
+                                                                                     use_loss_masking, known)
 
-        # TODO: update
+        # update loss weights
         _iter = self._iter_counter
         loss_weights = get_loss_weights(_iter,
                                         self.hparams.train.num_hierarchy_levels,
@@ -261,13 +210,10 @@ class LightningTemplateModel(LightningModule):
         loss, losses = loss_util.compute_loss(output_sdf, output_occs, target_for_sdf, target_for_occs, target_for_hier, loss_weights, truncation,
                                               logweight_target_sdf, weight_missing_geo, inputs[0], use_loss_masking, known)
 
-
         output = OrderedDict({
             'val_loss': loss,
         })
         return output
-
-
 
     def validation_epoch_end(self, outputs):
         """
@@ -307,51 +253,13 @@ class LightningTemplateModel(LightningModule):
         last_epoch = -1 if not self.hparams.train.retrain else self.hparams.train.start_epoch - 1
 
         optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
-        #scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+        # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=decay_lr, gamma=0.5, last_epoch=last_epoch)
         return [optimizer], [scheduler]
 
-    #def __dataloader(self, train):
-        ## this is neede when you want some info about dataset before binding to trainer
-        #self.prepare_data()
-        ## init data generators
-        #transform = transforms.Compose([transforms.ToTensor(),
-                                        #transforms.Normalize((0.5,), (1.0,))])
-        #dataset = MNIST(root=self.hparams.data_root, train=train,
-                        #transform=transform, download=False)
-
-        ## when using multi-node (ddp) we need to add the  datasampler
-        #batch_size = self.hparams.batch_size
-
-        #loader = DataLoader(
-            #dataset=dataset,
-            #batch_size=batch_size,
-            #num_workers=0
-        #)
-
-        #return loader
-
-    #def prepare_data(self):
-        #transform = transforms.Compose([transforms.ToTensor(),
-                                        #transforms.Normalize((0.5,), (1.0,))])
-        #_ = MNIST(root=self.hparams.data_root, train=True,
-                  #transform=transform, download=True)
-
-    #def train_dataloader(self):
-        #log.info('Training data loader called.')
-        #return self.__dataloader(train=True)
-
-    #def val_dataloader(self):
-        #log.info('Validation data loader called.')
-        #return self.__dataloader(train=False)
-
-    #def test_dataloader(self):
-        #log.info('Test data loader called.')
-        #return self.__dataloader(train=False)
-
     def _get_train_files(self):
-        #print("CD:", pathlib.Path().absolute())
-        #print("CD:", )
+        # print("CD:", pathlib.Path().absolute())
+        # print("CD:", )
         root_dir = Path(utils.get_original_cwd())
 
         if not hasattr(self, '__data_path'):
@@ -383,9 +291,9 @@ class LightningTemplateModel(LightningModule):
         if len(train_files) == 1:
             _OVERFIT = True
             # TODO:
-            #args.use_loss_masking = False
+            # args.use_loss_masking = False
         num_overfit_train = 0 if not _OVERFIT else 640
-        num_overfit_val = 0 if not _OVERFIT else 160
+        # num_overfit_val = 0 if not _OVERFIT else 160
         print('#train files = ', len(train_files))
         print('#val files = ', len(val_files))
         train_dataset = scene_dataloader.SceneDataset(train_files, input_dim, truncation, num_hierarchy_levels, 0, num_overfit_train)
@@ -394,9 +302,7 @@ class LightningTemplateModel(LightningModule):
 
         self._iter_counter = self.hparams.train.start_epoch * (len(train_dataset) // self.hparams.train.batch_size)
 
-
         return train_dataloader
-
 
     def val_dataloader(self):
         log.info('Validation data loader called.')
@@ -415,9 +321,9 @@ class LightningTemplateModel(LightningModule):
         if len(val_files) > 0:
             val_dataset = scene_dataloader.SceneDataset(val_files, input_dim, truncation, num_hierarchy_levels, 0, num_overfit_val)
             print('val_dataset', len(val_dataset))
-            val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers_valid, collate_fn=scene_dataloader.collate)
+            val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers_valid,
+                                                         collate_fn=scene_dataloader.collate)
         return val_dataloader
-
 
     def test_step(self, batch, batch_idx):
         """
@@ -454,27 +360,6 @@ class LightningTemplateModel(LightningModule):
         Parameters you define here will be available to your model through `self.hparams`.
         """
         parser = ArgumentParser(parents=[parent_parser])
-
-        # param overwrites
-        # parser.set_defaults(gradient_clip_val=5.0)
-
-        ## network params
-        #parser.add_argument('--in_features', default=28 * 28, type=int)
-        #parser.add_argument('--out_features', default=10, type=int)
-        ## use 500 for CPU, 50000 for GPU to see speed difference
-        #parser.add_argument('--hidden_dim', default=50000, type=int)
-        #parser.add_argument('--drop_prob', default=0.2, type=float)
-        #parser.add_argument('--learning_rate', default=0.001, type=float)
-
-        ## data
-        #parser.add_argument('--data_root', default=os.path.join(root_dir, 'mnist'), type=str)
-
-        ## training params (opt)
-        #parser.add_argument('--epochs', default=20, type=int)
-        #parser.add_argument('--optimizer_name', default='adam', type=str)
-        #parser.add_argument('--batch_size', default=64, type=int)
-
-        #parser.add_argument('--gpu', type=int, default=0, help='which gpu to use')
 
         parser.add_argument('--data_path', required=True, help='path to data')
         parser.add_argument('--train_file_list', required=True, help='path to file list of train data')
@@ -515,11 +400,9 @@ class LightningTemplateModel(LightningModule):
 
         return parser
 
-import numpy as np
-
 
 def get_loss_weights(iter, num_hierarchy_levels, num_iters_per_level, factor_l1_loss):
-    weights = np.zeros(num_hierarchy_levels+1, dtype=np.float32)
+    weights = np.zeros(num_hierarchy_levels + 1, dtype=np.float32)
     cur_level = iter // num_iters_per_level
     if cur_level > num_hierarchy_levels:
         weights.fill(1)
@@ -527,23 +410,24 @@ def get_loss_weights(iter, num_hierarchy_levels, num_iters_per_level, factor_l1_
         if iter == (num_hierarchy_levels + 1) * num_iters_per_level:
             print('[iter %d] updating loss weights:' % iter, weights)
         return weights
-    for level in range(0, cur_level+1):
+    for level in range(0, cur_level + 1):
         weights[level] = 1.0
     step_factor = 20
-    fade_amount = max(1.0, min(100, num_iters_per_level//step_factor))
+    fade_amount = max(1.0, min(100, num_iters_per_level // step_factor))
     fade_level = iter % num_iters_per_level
     cur_weight = 0.0
     l1_weight = 0.0
     if fade_level >= num_iters_per_level - fade_amount + step_factor:
         fade_level_step = (fade_level - num_iters_per_level + fade_amount) // step_factor
-        cur_weight = float(fade_level_step) / float(fade_amount//step_factor)
-    if cur_level+1 < num_hierarchy_levels:
-        weights[cur_level+1] = cur_weight
+        cur_weight = float(fade_level_step) / float(fade_amount // step_factor)
+    if cur_level + 1 < num_hierarchy_levels:
+        weights[cur_level + 1] = cur_weight
     elif cur_level < num_hierarchy_levels:
         l1_weight = factor_l1_loss * cur_weight
     else:
         l1_weight = 1.0
     weights[-1] = l1_weight
-    if iter % num_iters_per_level == 0 or (fade_level >= num_iters_per_level - fade_amount + step_factor and (fade_level - num_iters_per_level + fade_amount) % step_factor == 0):
+    if iter % num_iters_per_level == 0 or \
+            (fade_level >= num_iters_per_level - fade_amount + step_factor and (fade_level - num_iters_per_level + fade_amount) % step_factor == 0):
         print('[iter %d] updating loss weights:' % iter, weights)
     return weights

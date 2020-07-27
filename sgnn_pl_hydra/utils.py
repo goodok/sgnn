@@ -1,5 +1,6 @@
 import collections
 
+
 def dict_flatten(d, parent_key='', sep='_'):
     items = []
     for k, v in d.items():
