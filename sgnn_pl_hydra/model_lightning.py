@@ -158,6 +158,16 @@ class LightningTemplateModel(LightningModule):
                                               logweight_target_sdf, weight_missing_geo, inputs[0], use_loss_masking, known)
 
         tqdm_dict = {'train_loss': loss}
+
+        tqdm_dict['output_sdf'] = output_sdf
+        tqdm_dict['output_occs'] = output_occs
+
+        losses_dict = dict([(f'loss_{i}', l) for (i, l) in enumerate(losses)])
+        tqdm_dict.update(losses_dict)
+
+        loss_weights = dict([(f'lw_{i}', l) for (i, l) in enumerate(loss_weights)])
+        tqdm_dict.update(loss_weights)
+
         output = OrderedDict({
             'loss': loss,
             'progress_bar': tqdm_dict,
@@ -213,6 +223,13 @@ class LightningTemplateModel(LightningModule):
         output = OrderedDict({
             'val_loss': loss,
         })
+
+        output['val_output_sdf'] = output_sdf
+        output['val_output_occs'] = output_occs
+
+        losses_dict = dict([(f'val_loss_{i}', l) for (i, l) in enumerate(losses)])
+        output.update(losses_dict)
+
         return output
 
     def validation_epoch_end(self, outputs):

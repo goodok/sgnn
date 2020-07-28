@@ -13,6 +13,8 @@ save: ./logs
 
 tracker:
     experiment_name: test
+    tags: "sgnn/test"
+    offline: False
     neptune:
         fn_token: ~/.NEPTUNE_API_TOKEN.txt
         project_name: "goodok/sgnn"

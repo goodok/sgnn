@@ -5,12 +5,15 @@ import os
 import numpy as np
 import torch
 import hydra
+import warnings
+import time
 
 import pytorch_lightning as pl
-from pytorch_lightning.logging.neptune import NeptuneLogger
+from pytorch_lightning.loggers.neptune import NeptuneLogger
 
 from model_lightning import LightningTemplateModel
 from utils import dict_flatten
+
 
 SEED = 2334
 torch.manual_seed(SEED)
@@ -30,20 +33,36 @@ def main(hparams):
 
     # 0 INIT TRACKER
     # https://docs.neptune.ai/integrations/pytorch_lightning.html
-    neptune_params = hparams.tracker.neptune
-    if neptune_params.fn_token is not None:
-        with open(os.path.expanduser(neptune_params.fn_token), 'r') as f:
-            token = f.readline().splitlines()[0]
-            os.environ['NEPTUNE_API_TOKEN'] = token
+    try:
+        import neptune
+        NEPTUNE_AVAILABLE = True
+    except ImportError:  # pragma: no-cover
+        NEPTUNE_AVAILABLE = False
 
-    hparams_flatten = dict_flatten(hparams, sep='.')
-    experiment_name = hparams.tracker.get('experiment_name', None)
+    if NEPTUNE_AVAILABLE:
+        neptune_params = hparams.tracker.neptune
+        if neptune_params.fn_token is not None:
+            with open(os.path.expanduser(neptune_params.fn_token), 'r') as f:
+                token = f.readline().splitlines()[0]
+                os.environ['NEPTUNE_API_TOKEN'] = token
 
-    neptune_logger = NeptuneLogger(
-        project_name=neptune_params.project_name,
-        experiment_name=experiment_name,
-        params=hparams_flatten,
-    )
+        hparams_flatten = dict_flatten(hparams, sep='.')
+        experiment_name = hparams.tracker.get('experiment_name', None)
+        tags = hparams.tracker.get('tags', '').split('/')
+        offline_mode = hparams.tracker.get('offline', False)
+
+        neptune_logger = NeptuneLogger(
+            project_name=neptune_params.project_name,
+            experiment_name=experiment_name,
+            params=hparams_flatten,
+            tags=tags,
+            offline_mode=offline_mode,
+        )
+    else:
+        neptune_logger = None
+        warnings.warn('You want to use `neptune` logger which is not installed yet,'
+                      ' install it with `pip install neptune-client`.', UserWarning)
+        time.sleep(5)
 
     # ------------------------
     # 1 INIT LIGHTNING MODEL
