@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES="1" python train.py tracker.offline=true
+CUDA_VISIBLE_DEVICES="1" python train.py $@

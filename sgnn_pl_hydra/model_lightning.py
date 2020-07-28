@@ -159,9 +159,6 @@ class LightningTemplateModel(LightningModule):
 
         tqdm_dict = {'train_loss': loss}
 
-        tqdm_dict['output_sdf'] = output_sdf
-        tqdm_dict['output_occs'] = output_occs
-
         losses_dict = dict([(f'loss_{i}', l) for (i, l) in enumerate(losses)])
         tqdm_dict.update(losses_dict)
 
@@ -223,9 +220,6 @@ class LightningTemplateModel(LightningModule):
         output = OrderedDict({
             'val_loss': loss,
         })
-
-        output['val_output_sdf'] = output_sdf
-        output['val_output_occs'] = output_occs
 
         losses_dict = dict([(f'val_loss_{i}', l) for (i, l) in enumerate(losses)])
         output.update(losses_dict)
