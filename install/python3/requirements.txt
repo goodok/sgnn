@@ -10,4 +10,5 @@ hydra-core==1.0.0rc1
 omegaconf==2.0.1rc7
 neptune-client
 psutil
+GitPython
 

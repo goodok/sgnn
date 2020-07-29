@@ -2,6 +2,7 @@
 Runs a model on a single node across multiple gpus.
 """
 import os
+import sys
 import numpy as np
 import torch
 import hydra
@@ -12,7 +13,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers.neptune import NeptuneLogger
 
 from model_lightning import LightningTemplateModel
-from utils import dict_flatten
+from utils import dict_flatten, watermark, log_text_as_artifact
 
 
 SEED = 2334
@@ -51,7 +52,7 @@ def main(hparams):
         tags = hparams.tracker.get('tags', '').split('/')
         offline_mode = hparams.tracker.get('offline', False)
 
-        neptune_logger = NeptuneLogger(
+        tracker = NeptuneLogger(
             project_name=neptune_params.project_name,
             experiment_name=experiment_name,
             params=hparams_flatten,
@@ -59,28 +60,37 @@ def main(hparams):
             offline_mode=offline_mode,
         )
     else:
-        neptune_logger = None
+        tracker = None
         warnings.warn('You want to use `neptune` logger which is not installed yet,'
                       ' install it with `pip install neptune-client`.', UserWarning)
         time.sleep(5)
+
+    # log
+    if tracker is not None:
+        watermark_s = watermark(packages=['python', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core'])
+        log_text_as_artifact(tracker, watermark_s, "versions.txt")
+        # arguments_of_script
+        sysargs_s = str(sys.argv[1:])
+        log_text_as_artifact(tracker, sysargs_s, "arguments_of_script.txt")
 
     # ------------------------
     # 1 INIT LIGHTNING MODEL
     # ------------------------
     model = LightningTemplateModel(hparams)
 
+    if tracker is not None:
+        s = str(model)
+        log_text_as_artifact(tracker, s, "model_summary.txt")
+
     # ------------------------
     # 2 INIT TRAINER
     # ------------------------
-
-    print("hparams.gpus:", hparams.gpus)
-
     trainer = pl.Trainer(
         max_epochs=hparams.train.max_epochs,
         gpus=hparams.gpus,
         distributed_backend=hparams.distributed_backend,
         precision=16 if hparams.use_16bit else 32,
-        logger=neptune_logger,
+        logger=tracker,
     )
 
     # ------------------------
