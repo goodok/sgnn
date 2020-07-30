@@ -74,7 +74,7 @@ def main(hparams):
         sysargs_s = str(sys.argv[1:])
         log_text_as_artifact(tracker, sysargs_s, "arguments_of_script.txt")
 
-        for key in ['overrides.yaml', 'config.yaml', 'hydra.yaml']:
+        for key in ['overrides.yaml', 'config.yaml']:
             p = Path.cwd() / '.hydra' / key
             if p.exists():
                 tracker.log_artifact(str(p), f'hydra_{key}')
