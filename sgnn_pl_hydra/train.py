@@ -8,6 +8,7 @@ import torch
 import hydra
 import warnings
 import time
+from pathlib import Path
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers.neptune import NeptuneLogger
@@ -72,6 +73,11 @@ def main(hparams):
         # arguments_of_script
         sysargs_s = str(sys.argv[1:])
         log_text_as_artifact(tracker, sysargs_s, "arguments_of_script.txt")
+
+        for key in ['overrides.yaml', 'config.yaml', 'hydra.yaml']:
+            p = Path.cwd() / '.hydra' / key
+            if p.exists():
+                tracker.log_artifact(str(p), f'hydra_{key}')
 
     # ------------------------
     # 1 INIT LIGHTNING MODEL
