@@ -104,9 +104,6 @@ def main(hparams):
     # ------------------------
     # 3 START TRAINING
     # ------------------------
-    
-    1 / 0
-    
     trainer.fit(model)
 
 
