@@ -59,6 +59,7 @@ def main(hparams):
             params=hparams_flatten,
             tags=tags,
             offline_mode=offline_mode,
+            upload_source_files=["../../../*.py"],  # because hydra change current dir
         )
     else:
         tracker = None
@@ -103,6 +104,9 @@ def main(hparams):
     # ------------------------
     # 3 START TRAINING
     # ------------------------
+    
+    1 / 0
+    
     trainer.fit(model)
 
 
