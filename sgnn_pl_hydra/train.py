@@ -68,7 +68,8 @@ def main(hparams):
 
     # log
     if tracker is not None:
-        watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core'])
+        watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core',
+                                          'numpy', 'plyfile'])
         log_text_as_artifact(tracker, watermark_s, "versions.txt")
         # arguments_of_script
         sysargs_s = str(sys.argv[1:])
