@@ -9,6 +9,7 @@ import hydra
 import warnings
 import time
 from pathlib import Path
+from traceback import print_exc, print_exception
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers.neptune import NeptuneLogger
@@ -67,44 +68,52 @@ def main(hparams):
                       ' install it with `pip install neptune-client`.', UserWarning)
         time.sleep(5)
 
-    # log
-    if tracker is not None:
-        watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core',
-                                          'numpy', 'plyfile'])
-        log_text_as_artifact(tracker, watermark_s, "versions.txt")
-        # arguments_of_script
-        sysargs_s = str(sys.argv[1:])
-        log_text_as_artifact(tracker, sysargs_s, "arguments_of_script.txt")
+    try:
 
-        for key in ['overrides.yaml', 'config.yaml']:
-            p = Path.cwd() / '.hydra' / key
-            if p.exists():
-                tracker.log_artifact(str(p), f'hydra_{key}')
+        # log
+        if tracker is not None:
+            watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core',
+                                            'numpy', 'plyfile'])
+            log_text_as_artifact(tracker, watermark_s, "versions.txt")
+            # arguments_of_script
+            sysargs_s = str(sys.argv[1:])
+            log_text_as_artifact(tracker, sysargs_s, "arguments_of_script.txt")
 
-    # ------------------------
-    # 1 INIT LIGHTNING MODEL
-    # ------------------------
-    model = LightningTemplateModel(hparams)
+            for key in ['overrides.yaml', 'config.yaml']:
+                p = Path.cwd() / '.hydra' / key
+                if p.exists():
+                    tracker.log_artifact(str(p), f'hydra_{key}')
 
-    if tracker is not None:
-        s = str(model)
-        log_text_as_artifact(tracker, s, "model_summary.txt")
+        # ------------------------
+        # 1 INIT LIGHTNING MODEL
+        # ------------------------
+        model = LightningTemplateModel(hparams)
 
-    # ------------------------
-    # 2 INIT TRAINER
-    # ------------------------
-    trainer = pl.Trainer(
-        max_epochs=hparams.train.max_epochs,
-        gpus=hparams.gpus,
-        distributed_backend=hparams.distributed_backend,
-        precision=16 if hparams.use_16bit else 32,
-        logger=tracker,
-    )
+        if tracker is not None:
+            s = str(model)
+            log_text_as_artifact(tracker, s, "model_summary.txt")
 
-    # ------------------------
-    # 3 START TRAINING
-    # ------------------------
-    trainer.fit(model)
+        # ------------------------
+        # 2 INIT TRAINER
+        # ------------------------
+        trainer = pl.Trainer(
+            max_epochs=hparams.train.max_epochs,
+            gpus=hparams.gpus,
+            distributed_backend=hparams.distributed_backend,
+            precision=16 if hparams.use_16bit else 32,
+            logger=tracker,
+        )
+
+        # ------------------------
+        # 3 START TRAINING
+        # ------------------------
+        trainer.fit(model)
+
+    except Exception as ex:
+        if tracker is not None:
+            print_exc()
+            tracker.experiment.stop(str(ex))
+        raise
 
 
 if __name__ == '__main__':
