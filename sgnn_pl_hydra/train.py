@@ -59,6 +59,7 @@ def main(hparams):
             params=hparams_flatten,
             tags=tags,
             offline_mode=offline_mode,
+            upload_source_files=["../../../*.py"],  # because hydra change current dir
         )
     else:
         tracker = None
@@ -68,13 +69,14 @@ def main(hparams):
 
     # log
     if tracker is not None:
-        watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core'])
+        watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core',
+                                          'numpy', 'plyfile'])
         log_text_as_artifact(tracker, watermark_s, "versions.txt")
         # arguments_of_script
         sysargs_s = str(sys.argv[1:])
         log_text_as_artifact(tracker, sysargs_s, "arguments_of_script.txt")
 
-        for key in ['overrides.yaml', 'config.yaml', 'hydra.yaml']:
+        for key in ['overrides.yaml', 'config.yaml']:
             p = Path.cwd() / '.hydra' / key
             if p.exists():
                 tracker.log_artifact(str(p), f'hydra_{key}')
