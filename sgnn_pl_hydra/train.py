@@ -9,7 +9,7 @@ import hydra
 import warnings
 import time
 from pathlib import Path
-from traceback import print_exc, print_exception
+from traceback import print_exc
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers.neptune import NeptuneLogger
@@ -42,12 +42,27 @@ def main(hparams):
     except ImportError:  # pragma: no-cover
         NEPTUNE_AVAILABLE = False
 
-    if NEPTUNE_AVAILABLE:
+    USE_NEPTUNE = False
+    if getattr(hparams, 'tracker', None) is not None:
+        if getattr(hparams.tracker, 'neptune', None) is not None:
+            USE_NEPTUNE = True
+
+    if USE_NEPTUNE and not NEPTUNE_AVAILABLE:
+        warnings.warn('You want to use `neptune` logger which is not installed yet,'
+                      ' install it with `pip install neptune-client`.', UserWarning)
+        time.sleep(5)
+
+    tracker = None
+
+    if NEPTUNE_AVAILABLE and USE_NEPTUNE:
         neptune_params = hparams.tracker.neptune
-        if neptune_params.fn_token is not None:
-            with open(os.path.expanduser(neptune_params.fn_token), 'r') as f:
-                token = f.readline().splitlines()[0]
-                os.environ['NEPTUNE_API_TOKEN'] = token
+        fn_token = getattr(neptune_params, 'fn_token', None)
+        if fn_token is not None:
+            p = Path(neptune_params.fn_token).expanduser()
+            if p.exists():
+                with open(p, 'r') as f:
+                    token = f.readline().splitlines()[0]
+                    os.environ['NEPTUNE_API_TOKEN'] = token
 
         hparams_flatten = dict_flatten(hparams, sep='.')
         experiment_name = hparams.tracker.get('experiment_name', None)
@@ -62,18 +77,13 @@ def main(hparams):
             offline_mode=offline_mode,
             upload_source_files=["../../../*.py"],  # because hydra change current dir
         )
-    else:
-        tracker = None
-        warnings.warn('You want to use `neptune` logger which is not installed yet,'
-                      ' install it with `pip install neptune-client`.', UserWarning)
-        time.sleep(5)
 
     try:
 
         # log
         if tracker is not None:
             watermark_s = watermark(packages=['python', 'nvidia', 'cudnn', 'hostname', 'torch', 'sparseconvnet', 'pytorch-lightning', 'hydra-core',
-                                            'numpy', 'plyfile'])
+                                              'numpy', 'plyfile'])
             log_text_as_artifact(tracker, watermark_s, "versions.txt")
             # arguments_of_script
             sysargs_s = str(sys.argv[1:])
