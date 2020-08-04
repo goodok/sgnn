@@ -1,0 +1,97 @@
+
+
+### https://stackoverflow.com/questions/59632017/install-python-2-7-on-ubuntu-18-04
+
+
+
+## Virtualenv
+
+    mkvirtualenv sgnn_python3_pl085
+
+## Install modules
+
+    pip install -r requirements.txt
+
+## respective directory
+
+    cd ../../               # Path where github.com/goodok/sgnn/ code is cloned
+    cd sgnn_pl085_hydra/
+
+## SparseConvNet
+
+https://github.com/facebookresearch/SparseConvNet
+
+    sudo apt-get install libsparsehash-dev
+
+
+    cd ../arsenal
+
+    git clone https://github.com/facebookresearch/SparseConvNet SparseConvNet_sgnn_python3_pl085
+
+
+    cd SparseConvNet_sgnn_python3_pl085/
+
+# Commits on Oct 28, 2019 a948af5889bf420cdbda56ffea82b0ba9b06c125 - fails
+# Commits on Jun 22, 2019 d80ef3e21d183723b1135cea3579740b7c200ed7 - ok
+#                         1171aae34cd5c7c94cfc8f131f04d35daf5ac4a1 - ok
+
+
+    git checkout 1171aae34cd5c7c94cfc8f131f04d35daf5ac4a1
+
+Build (and install)
+
+    # bash build.sh
+    bash develop.sh
+
+
+test
+
+    cd examples
+    python hello-world.py
+
+Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
+
+
+## SGNN
+
+    cd ../../
+    cd sgnn_pl085_hydra/
+    cd marching_cubes
+    python setup.py install
+
+## PL
+
+    cd ../arsenal
+
+    git clone https://github.com/PyTorchLightning/pytorch-lightning pytorch-lightning_085_sgnn
+    cd pytorch-lightning_085_sgnn
+    # 0.8.5   Date:   Thu Jul 9 22:00:23 2020 -0400
+    git checkout 92d6abcbb9e73645fff0bba2914f7a7e0e748a91
+    python setup.py develop
+
+
+# Dataset
+
+Choose directory for data
+
+    cd "path/to/somewhere"
+    mkdir Matterplot3D
+    cd Matterplot3D
+
+Download
+
+    wget http://kaldir.vc.in.tum.de/adai/SGNN/mp_sdf_vox_2cm_input.zip
+    wget http://kaldir.vc.in.tum.de/adai/SGNN/mp_sdf_vox_2cm_target.zip
+    wget http://kaldir.vc.in.tum.de/adai/SGNN/completion_blocks.zip
+
+Unzip
+
+    unzip mp_sdf_vox_2cm_input.zip
+    unzip mp_sdf_vox_2cm_target.zip
+    unzip completion_blocks.zip
+
+Create symlink to data
+
+    cd ../../
+    cd sgnn_pl085_hydra/
+    ln -s "path/to/somewhere"/Matterplot3D data
