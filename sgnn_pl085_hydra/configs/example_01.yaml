@@ -1,0 +1,56 @@
+
+gpus: 1
+distributed_backend: dp
+use_16bit: false
+
+
+data:
+    data_path:       ./data/completion_blocks           # path to data
+    train_file_list: ./filelists/train_list.txt         # path to file list of train data
+    val_file_list:   ./filelists/val_list.txt           # path to file list of val data
+
+save: ./logs
+
+tracker:
+    experiment_name: test
+    tags: "sgnn/test"
+    offline: False
+    neptune:
+        fn_token: ~/.NEPTUNE_API_TOKEN.txt
+        project_name: "goodok/sgnn"
+
+
+## model params
+model:
+    input_dim: 128-64-64                # voxel dim
+    encoder_dim: 8                      # pointnet feature dim
+    coarse_feat_dim: 16                 # feature dim
+    refine_feat_dim: 16                 # feature dim
+    no_pass_occ: false                  # no_pass_occ
+    no_pass_feats: false                # no_pass_feats
+    use_skip_sparse: 1                  # use skip connections between sparse convs
+    use_skip_dense: 1                   # use skip connections between dense convs
+    logweight_target_sdf: true          # logweight_target_sdf
+
+train:
+    retrain: ''                         # model to load from
+    num_hierarchy_levels: 4             # #hierarchy levels (must be > 1).
+    num_iters_per_level: 2000           # #iters before fading in training for next level.
+    num_overfit_val: 160
+    truncation: 3.0                     # truncation in voxels
+    batch_size: 8                       # input batch size
+    num_workers_train: 4                # num workers for train
+    num_workers_valid: 4                # num workers for valid
+    start_epoch: 0                      # start epoch
+    max_epochs: 5                       # number of epochs to train for
+    save_epoch: 1                       # save every nth epoch
+    lr: 0.001                           # learning rate
+    decay_lr: 10                        # decay learning rate by half every n epochs
+    weight_decay: 0.0                   # weight decay
+    weight_sdf_loss: 1.0                # weight sdf loss vs occ
+    weight_missing_geo: 5.0             # weight missing geometry vs rest of sdf
+    vis_dfs: 0                          # use df (iso 1) to visualize
+    use_loss_masking: false
+    no_loss_masking: true
+    scheduler_step_size: 0              # iters before scheduler step (0 for each epoch)
+    input_nf: 1                         # from original hardcoded  # TODO move to model's block
