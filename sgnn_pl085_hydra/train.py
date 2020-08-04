@@ -95,7 +95,12 @@ def main(hparams):
                 if p.exists():
                     tracker.log_artifact(str(p), f'hydra_{key}')
 
-        lr_logger = LearningRateLogger()
+
+        callbacks = []
+        if tracker is not None:
+            lr_logger = LearningRateLogger()
+            callbacks.append(lr_logger)
+
 
         # ------------------------
         # 1 INIT LIGHTNING MODEL
@@ -115,7 +120,7 @@ def main(hparams):
             distributed_backend=hparams.distributed_backend,
             precision=16 if hparams.use_16bit else 32,
             logger=tracker,
-            callbacks=[lr_logger],
+            callbacks=callbacks,
         )
 
         # ------------------------
