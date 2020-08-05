@@ -116,17 +116,20 @@ def main(hparams):
         # ------------------------
         cfg = hparams.PL
 
-        logger = tracker
         if tracker is None:
-            logger = True # cfg.logger
+            cfg.logger = tracker
+        print(cfg.overfit_batches)
+        print(type(cfg.overfit_batches))
+        print(dir(cfg))
+
+        kwargs = dict(cfg)
+        print(kwargs['overfit_batches'])
+        print(type(kwargs['overfit_batches']))
 
         trainer = pl.Trainer(
             max_epochs=hparams.train.max_epochs,
-            gpus=cfg.gpus,
-            distributed_backend=cfg.distributed_backend,
-            precision=cfg.precision,
-            logger=logger,
             callbacks=callbacks,
+            **dict(cfg)
         )
 
         # ------------------------
