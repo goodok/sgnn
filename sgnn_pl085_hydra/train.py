@@ -114,12 +114,18 @@ def main(hparams):
         # ------------------------
         # 2 INIT TRAINER
         # ------------------------
+        cfg = hparams.PL
+
+        logger = tracker
+        if tracker is None:
+            logger = True # cfg.logger
+
         trainer = pl.Trainer(
             max_epochs=hparams.train.max_epochs,
-            gpus=hparams.gpus,
-            distributed_backend=hparams.distributed_backend,
-            precision=16 if hparams.use_16bit else 32,
-            logger=tracker,
+            gpus=cfg.gpus,
+            distributed_backend=cfg.distributed_backend,
+            precision=cfg.precision,
+            logger=logger,
             callbacks=callbacks,
         )
 

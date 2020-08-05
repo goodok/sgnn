@@ -1,7 +1,6 @@
 
-gpus: 1
-distributed_backend: dp
-use_16bit: false
+defaults:
+ - PL: pytorch_lightning
 
 
 data:
