@@ -117,27 +117,27 @@ def main(hparams):
         cfg = hparams.PL
 
         if tracker is None:
-            cfg.logger = tracker
-        print(cfg.overfit_batches)
-        print(type(cfg.overfit_batches))
-        print(dir(cfg))
+           tracker = cfg.logger   # True by default in PL
 
         kwargs = dict(cfg)
-        print(kwargs['overfit_batches'])
-        print(type(kwargs['overfit_batches']))
+        kwargs.pop('logger')
 
         trainer = pl.Trainer(
             max_epochs=hparams.train.max_epochs,
             callbacks=callbacks,
-            **dict(cfg)
+            logger=tracker,
+            **kwargs,
         )
 
         # ------------------------
         # 3 START TRAINING
         # ------------------------
+        print()
+        print("Start training")
+
         trainer.fit(model)
 
-    except Exception as ex:
+    except (Exception, KeyboardInterrupt) as ex:
         if tracker is not None:
             print_exc()
             tracker.experiment.stop(str(ex))
