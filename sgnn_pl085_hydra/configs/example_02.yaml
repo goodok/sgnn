@@ -9,7 +9,9 @@ data:
 save: ./logs
 
 tracker:
-    experiment_name: test2
+    experiment_name: "test2 config2"
+    tags: ["sgnn", "test2"]
+    offline: False
     neptune:
         fn_token: ~/.NEPTUNE_API_TOKEN.txt
         project_name: "goodok/sgnn"
