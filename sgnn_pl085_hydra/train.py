@@ -67,7 +67,7 @@ def main(hparams):
 
         hparams_flatten = dict_flatten(hparams, sep='.')
         experiment_name = hparams.tracker.get('experiment_name', None)
-        tags = hparams.tracker.get('tags', '').split('/')
+        tags = list(hparams.tracker.get('tags', []))
         offline_mode = hparams.tracker.get('offline', False)
 
         tracker = NeptuneLogger(
