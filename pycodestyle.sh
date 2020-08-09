@@ -1,1 +1,1 @@
-pycodestyle sgnn_pl_hydra/$1
+pycodestyle sgnn/$1

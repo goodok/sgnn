@@ -1,0 +1,93 @@
+
+
+### https://stackoverflow.com/questions/59632017/install-python-2-7-on-ubuntu-18-04
+
+
+
+## Virtualenv
+
+    mkvirtualenv sgnn_python3
+
+## Install modules
+
+    pip install -r requirements.txt
+
+
+
+## SparseConvNet
+
+https://github.com/facebookresearch/SparseConvNet
+
+    sudo apt-get install libsparsehash-dev
+
+
+    cd ../arsenal
+
+    git clone https://github.com/facebookresearch/SparseConvNet SparseConvNet_sgnn_python3
+
+
+    cd SparseConvNet_sgnn_python3/
+
+# Commits on Oct 28, 2019 a948af5889bf420cdbda56ffea82b0ba9b06c125 - fails
+# Commits on Jun 22, 2019 d80ef3e21d183723b1135cea3579740b7c200ed7 - ok
+#                         1171aae34cd5c7c94cfc8f131f04d35daf5ac4a1 - ok
+
+
+    git checkout 1171aae34cd5c7c94cfc8f131f04d35daf5ac4a1
+
+Build (and install)
+
+    # bash build.sh
+    bash develop.sh
+
+
+test
+
+    cd examples
+    python hello-world.py
+
+Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
+
+
+## SGNN
+
+    # or `cd sgnn_original_python3`
+    cd sgnn_pl_hydra/
+    cd marching_cubes
+    python setup.py install
+
+## PL
+
+    cd ../arsenal
+
+    git clone https://github.com/PyTorchLightning/pytorch-lightning pytorch-lightning_sgnn
+    cd pytorch-lightning_sgnn
+    # 0.7.5   27 apr 2020
+    git checkout 694f1d789dfa56b365b68dd4f3c6f5f7a4c8970a
+    python setup.py develop
+
+
+# Dataset
+
+Choose directory for data
+
+    cd "path/to/somewhere"
+    mkdir Matterport3D
+    cd Matterport3D
+
+Download
+
+    wget http://kaldir.vc.in.tum.de/adai/SGNN/mp_sdf_vox_2cm_input.zip
+    wget http://kaldir.vc.in.tum.de/adai/SGNN/mp_sdf_vox_2cm_target.zip
+    wget http://kaldir.vc.in.tum.de/adai/SGNN/completion_blocks.zip
+
+Unzip
+
+    unzip mp_sdf_vox_2cm_input.zip
+    unzip mp_sdf_vox_2cm_target.zip
+    unzip completion_blocks.zip
+
+Create symlink to data
+
+    cd sgnn_pl_hydra/
+    ln -s "path/to/somewhere"/Matterport3D data
