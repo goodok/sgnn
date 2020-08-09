@@ -3,6 +3,7 @@
 #  https://pytorch-lightning.readthedocs.io/en/latest/trainer.html# trainer-class
 # Remarks:
 #  - all None fields are commented, as hydra treats them as string.
+#    use "+" to add them, e.g. "+PL.tpu_cores=1" in command line.
 
 gpus: 1
 distributed_backend: dp
