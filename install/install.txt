@@ -19,8 +19,7 @@
 
 ## respective directory
 
-    cd SGNN
-    cd sgnn_pl085_hydra/
+    cd SGNN/sgnn
 
 ## SparseConvNet
 
@@ -60,13 +59,13 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 ## SGNN
 
     cd SGNN
-    cd sgnn_pl085_hydra/
+    cd sgnn/
     cd marching_cubes
     python setup.py install
 
 ## PL
 
-    cd ../arsenal
+    cd ARSENAL
 
     git clone https://github.com/PyTorchLightning/pytorch-lightning pytorch-lightning_085_sgnn
     cd pytorch-lightning_085_sgnn
@@ -98,5 +97,5 @@ Unzip
 Create symlink to data
 
     cd SGNN
-    cd sgnn_pl085_hydra/
+    cd sgnn/
     ln -s DATA/Matterport3D data
