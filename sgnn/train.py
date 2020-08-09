@@ -95,12 +95,10 @@ def main(hparams):
                 if p.exists():
                     tracker.log_artifact(str(p), f'hydra_{key}')
 
-
         callbacks = []
         if tracker is not None:
             lr_logger = LearningRateLogger()
             callbacks.append(lr_logger)
-
 
         # ------------------------
         # 1 INIT LIGHTNING MODEL
@@ -117,7 +115,7 @@ def main(hparams):
         cfg = hparams.PL
 
         if tracker is None:
-           tracker = cfg.logger   # True by default in PL
+            tracker = cfg.logger   # True by default in PL
 
         kwargs = dict(cfg)
         kwargs.pop('logger')
