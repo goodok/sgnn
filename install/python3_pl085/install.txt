@@ -1,7 +1,10 @@
 
 
-### https://stackoverflow.com/questions/59632017/install-python-2-7-on-ubuntu-18-04
+## Directories
 
+- SGNN     - Path where github.com/goodok/sgnn/ code is cloned
+- ARSENAL  - Path for other cloned packages
+- DATA     - Path for data
 
 
 ## Virtualenv
@@ -10,11 +13,13 @@
 
 ## Install modules
 
+    cd SGNN/install/python3_pl085
+
     pip install -r requirements.txt
 
 ## respective directory
 
-    cd ../../               # Path where github.com/goodok/sgnn/ code is cloned
+    cd SGNN
     cd sgnn_pl085_hydra/
 
 ## SparseConvNet
@@ -24,7 +29,7 @@ https://github.com/facebookresearch/SparseConvNet
     sudo apt-get install libsparsehash-dev
 
 
-    cd ../arsenal
+    cd ARSENAL
 
     git clone https://github.com/facebookresearch/SparseConvNet SparseConvNet_sgnn_python3_pl085
 
@@ -54,7 +59,7 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 
 ## SGNN
 
-    cd ../../
+    cd SGNN
     cd sgnn_pl085_hydra/
     cd marching_cubes
     python setup.py install
@@ -74,7 +79,7 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 
 Choose directory for data
 
-    cd "path/to/somewhere"
+    cd DATA
     mkdir Matterplot3D
     cd Matterplot3D
 
@@ -92,6 +97,6 @@ Unzip
 
 Create symlink to data
 
-    cd ../../
+    cd SGNN
     cd sgnn_pl085_hydra/
-    ln -s "path/to/somewhere"/Matterplot3D data
+    ln -s DATA/Matterplot3D data
