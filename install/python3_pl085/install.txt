@@ -80,8 +80,8 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 Choose directory for data
 
     cd DATA
-    mkdir Matterplot3D
-    cd Matterplot3D
+    mkdir Matterport3D
+    cd Matterport3D
 
 Download
 
@@ -99,4 +99,4 @@ Create symlink to data
 
     cd SGNN
     cd sgnn_pl085_hydra/
-    ln -s DATA/Matterplot3D data
+    ln -s DATA/Matterport3D data

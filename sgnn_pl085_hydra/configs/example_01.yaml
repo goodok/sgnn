@@ -1,6 +1,6 @@
 defaults:
   - PL: pytorch_lightning
-  - data: Matterplot3D
+  - data: Matterport3D
 
 save: ./logs
 
