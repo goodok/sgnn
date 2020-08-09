@@ -1,16 +1,10 @@
 defaults:
   - PL: pytorch_lightning
   - data: Matterport3D
+  # Uncomment this to use neptune tracker, or use +tracker=neptune in command line
+  # - tracker: neptune
 
 save: ./logs
-
-tracker:
-    experiment_name: "test2 config2"
-    tags: ["sgnn", "test2"]
-    offline: False
-    neptune:
-        fn_token: ~/.NEPTUNE_API_TOKEN.txt
-        project_name: "goodok/sgnn"
 
 ## model params
 model:

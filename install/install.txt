@@ -65,7 +65,7 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 
 ## PL
 
-Version 0.8.5 of pytorch-lightning  is installed by requirements.txt
+Version 0.8.5 of pytorch-lightning is installed by requirements.txt
 
 Or with pip
 
