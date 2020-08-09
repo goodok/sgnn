@@ -1,10 +1,6 @@
 defaults:
- - PL: pytorch_lightning
-
-data:
-    data_path:       ./data/completion_blocks           # path to data
-    train_file_list: ./filelists/train_list.txt         # path to file list of train data
-    val_file_list:   ./filelists/val_list.txt           # path to file list of val data
+  - PL: pytorch_lightning
+  - data: Matterplot3D
 
 save: ./logs
 
