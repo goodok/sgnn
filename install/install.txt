@@ -48,7 +48,7 @@ Build (and install)
     bash develop.sh
 
 
-test
+Test SparseConvNet:
 
     cd examples
     python hello-world.py
