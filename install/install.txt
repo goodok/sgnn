@@ -65,13 +65,21 @@ Output: `torch.Size([2, 32, 10, 10]) torch.cuda.FloatTensor`
 
 ## PL
 
-    cd ARSENAL
+Version 0.8.5 of pytorch-lightning  is installed by requirements.txt
 
-    git clone https://github.com/PyTorchLightning/pytorch-lightning pytorch-lightning_085_sgnn
-    cd pytorch-lightning_085_sgnn
-    # 0.8.5   Date:   Thu Jul 9 22:00:23 2020 -0400
-    git checkout 92d6abcbb9e73645fff0bba2914f7a7e0e748a91
-    python setup.py develop
+Or with pip
+
+    pip install pytorch-lightning==0.8.5
+
+Or manually:
+
+    # cd ARSENAL
+
+    # git clone https://github.com/PyTorchLightning/pytorch-lightning pytorch-lightning_085_sgnn
+    # cd pytorch-lightning_085_sgnn
+    # # 0.8.5   Date:   Thu Jul 9 22:00:23 2020 -0400
+    # git checkout 92d6abcbb9e73645fff0bba2914f7a7e0e748a91
+    # python setup.py develop
 
 
 # Dataset
