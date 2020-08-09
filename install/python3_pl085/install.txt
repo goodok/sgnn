@@ -83,7 +83,7 @@ Choose directory for data
     mkdir Matterport3D
     cd Matterport3D
 
-Download
+Download version of dataset as [described](https://github.com/angeladai/sgnn#data) by authors of SG-NN 
 
     wget http://kaldir.vc.in.tum.de/adai/SGNN/mp_sdf_vox_2cm_input.zip
     wget http://kaldir.vc.in.tum.de/adai/SGNN/mp_sdf_vox_2cm_target.zip
