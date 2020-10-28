@@ -38,9 +38,12 @@ https://github.com/facebookresearch/SparseConvNet
 # Commits on Oct 28, 2019 a948af5889bf420cdbda56ffea82b0ba9b06c125 - fails
 # Commits on Jun 22, 2019 d80ef3e21d183723b1135cea3579740b7c200ed7 - ok
 #                         1171aae34cd5c7c94cfc8f131f04d35daf5ac4a1 - ok
+# for pytorch 1.6: Jul 22, 2020 159e5f9a2349c776c422dce9f5b4493519303dc2 - ok
 
 
     git checkout 1171aae34cd5c7c94cfc8f131f04d35daf5ac4a1
+    
+    
 
 Build (and install)
 
