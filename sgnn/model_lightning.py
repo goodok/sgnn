@@ -271,7 +271,10 @@ class LightningTemplateModel(LightningModule):
     def _get_train_files(self):
         # print("CD:", pathlib.Path().absolute())
         # print("CD:", )
-        root_dir = Path(utils.get_original_cwd())
+        if not hasattr(self, 'files_root_dir'):
+            root_dir = Path(utils.get_original_cwd())
+        else:
+            root_dir = self.files_root_dir
 
         if not hasattr(self, '__data_path'):
 
