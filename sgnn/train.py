@@ -14,6 +14,8 @@ from traceback import print_exc
 import pytorch_lightning as pl
 from pytorch_lightning.loggers.neptune import NeptuneLogger
 from pytorch_lightning.callbacks.lr_logger import LearningRateLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
+
 
 from model_lightning import LightningTemplateModel
 from utils import dict_flatten, watermark, log_text_as_artifact
@@ -99,6 +101,10 @@ def main(hparams):
         if tracker is not None:
             lr_logger = LearningRateLogger()
             callbacks.append(lr_logger)
+
+        if hasattr(hparams.PL, 'model_checkpoint'):
+            cb_model_checkpoint = ModelCheckpoint(**hparams.PL.model_checkpoint)
+            callbacks.append(cb_model_checkpoint)
 
         # ------------------------
         # 1 INIT LIGHTNING MODEL
